@@ -3,8 +3,12 @@ package kz.ugs.callisto.mis.reports.parser;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,6 +24,10 @@ import org.apache.tika.parser.pdf.PDFParser;
 import org.apache.tika.parser.pdf.PDFParserConfig;
 import org.apache.tika.parser.txt.CharsetDetector;
 import org.apache.tika.sax.ToXMLContentHandler;
+import org.ghost4j.converter.ConverterException;
+import org.ghost4j.converter.PDFConverter;
+import org.ghost4j.document.DocumentException;
+import org.ghost4j.document.PSDocument;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
@@ -37,14 +45,59 @@ public class App  {
     	App app = new App();
     	
     	try {
-    		String pathName = "c:/temp/file1/";
-    		String file = "22.pdf";
+    		
+    		
+    		
+    		app.convertPsToPdf();
+    		
+    		/*
+    		String pathName = "c:/temp/ps/";
+    		String file = "fromps.pdf";
     		Path path = Paths.get(pathName + file);
     		app.extractImg(Files.readAllBytes(path), pathName, file);
     		String res = app.parseToHTML(pathName + file);
     		File in = new File(pathName + file + ".html");
     		FileUtils.writeStringToFile(in, res, "UTF-8");
+    		*/
+    		
 		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		}
+    }
+    
+    private void convertPsToPdf()	{
+    	//load PostScript document
+        PSDocument document = new PSDocument();
+        try {
+			document.load(new File("c:/temp/ps/how010.pjb"));
+		} catch (FileNotFoundException e) {
+			logger.error(e.getMessage(), e);
+		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
+		}
+     
+        //create OutputStream
+        FileOutputStream fos = null;
+		try {
+			fos = new FileOutputStream(new File("c:/temp/ps/fromps.pdf"));
+		} catch (FileNotFoundException e) {
+			logger.error(e.getMessage(), e);
+		}
+     
+        //create converter
+        PDFConverter converter = new PDFConverter();
+     
+        //set options
+        converter.setPDFSettings(PDFConverter.OPTION_PDFSETTINGS_PREPRESS);
+     
+        //convert
+        try {
+			converter.convert(document, fos);
+		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
+		} catch (ConverterException e) {
+			logger.error(e.getMessage(), e);
+		} catch (DocumentException e) {
 			logger.error(e.getMessage(), e);
 		}
     }
